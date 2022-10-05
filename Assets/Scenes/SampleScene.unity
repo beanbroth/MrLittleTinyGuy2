@@ -1129,6 +1129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 667864949}
   - component: {fileID: 667864950}
+  - component: {fileID: 667864951}
   m_Layer: 6
   m_Name: XRPlayer
   m_TagString: Player
@@ -1178,6 +1179,32 @@ MonoBehaviour:
     m_Reference: {fileID: -5982496924579745919, guid: 9841435c0eb41da48952075b1a628008,
       type: 3}
   _handPos: {fileID: 22867824}
+--- !u!114 &667864951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 667864948}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4073b5997a797a4ea2acd45d3b0d87a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _grabHand:
+    m_UseReference: 1
+    m_Action:
+      m_Name: Grab Hand
+      m_Type: 0
+      m_ExpectedControlType: 
+      m_Id: b298ac06-8f06-4fe2-a2a1-927582ed1443
+      m_Processors: 
+      m_Interactions: 
+      m_SingletonActionBindings: []
+      m_Flags: 0
+    m_Reference: {fileID: 83097790271614945, guid: 9841435c0eb41da48952075b1a628008,
+      type: 3}
+  _handPos: {fileID: 1537117037}
 --- !u!1 &768846036
 GameObject:
   m_ObjectHideFlags: 0
@@ -3278,7 +3305,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1838038575}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 3a009ef26a896f141a70360fce04f792, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
