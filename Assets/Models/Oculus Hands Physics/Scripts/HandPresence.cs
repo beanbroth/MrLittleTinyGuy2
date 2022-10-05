@@ -9,8 +9,25 @@ public class HandPresence : MonoBehaviour
     private InputDevice targetDevice;
     public Animator handAnimator;
 
+    Collider[] _handColliders;
+    public void EnableHandColliders()
+    {
+        foreach (Collider item in _handColliders)
+        {
+            item.enabled = true;
+        }
+    }
+    public void DisableHandColliders()
+    {
+        foreach (Collider item in _handColliders)
+        {
+            item.enabled = false;
+        }
+    }
+
     void Start()
     {
+        _handColliders = GetComponentsInChildren<Collider>();
         TryInitialize();
     }
 
@@ -37,14 +54,14 @@ public class HandPresence : MonoBehaviour
 
         }
 
-        //if (targetDevice.TryGetFeatureValue(CommonUsages.grip, out float gripValue))
-        //{
-        //    handAnimator.SetFloat("Grip", gripValue);
-        //}
-        //else
-        //{
-        //    handAnimator.SetFloat("Grip", 0);
-        //}
+        if (targetDevice.TryGetFeatureValue(CommonUsages.grip, out float gripValue))
+        {
+            handAnimator.SetFloat("Trigger", gripValue);
+        }
+        else
+        {
+            handAnimator.SetFloat("Trigger", 0);
+        }
     }
 
     // Update is called once per frame

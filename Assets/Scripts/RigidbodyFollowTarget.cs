@@ -20,8 +20,6 @@ public class RigidbodyFollowTarget : MonoBehaviour
 
         Quaternion rotationDifference = _targ.rotation * Quaternion.Inverse(transform.rotation);
 
-        //rotationDifference.ToAngleAxis(out float angleInDegree, out Vector3 rotationAxis);
-
 
         Vector3 rotationDifferenceInDegree = ClampEulerAngelsToClosest(new Vector3(rotationDifference.eulerAngles.x, rotationDifference.eulerAngles.y, rotationDifference.eulerAngles.z));
 

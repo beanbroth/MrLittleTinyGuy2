@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// A floating-capsule oriented physics based character controller. Based on the approach devised by Toyful Games for Very Very Valet.
+/// A floating-capsule oriented physics based character controller. Based on the approach devised by Toyful Games for Very Very Valet. Modified version of Joe Brinns's Physics Character Controller
 /// </summary>
 public class PhysicsBasedCharacterController : MonoBehaviour
 {
@@ -16,20 +16,21 @@ public class PhysicsBasedCharacterController : MonoBehaviour
     private ParticleSystem.EmissionModule _emission;
 
     [Header("Other:")]
+    [SerializeField] private LayerMask _floorLayerMask;
     [SerializeField] private Transform _cam;
     [SerializeField] private ParticleSystem _dustParticleSystem;
 
     private bool _shouldMaintainHeight = true;
 
     [Header("Height Spring:")]
-    [SerializeField] private float _rideHeight = 1.75f; // rideHeight: desired distance to ground (Note, this is distance from the original raycast position (currently centre of transform)). 
-    [SerializeField] private float _rayToGroundLength = 3f; // rayToGroundLength: max distance of raycast to ground (Note, this should be greater than the rideHeight).
-    [SerializeField] public float _rideSpringStrength = 50f; // rideSpringStrength: strength of spring. (?)
-    [SerializeField] private float _rideSpringDamper = 5f; // rideSpringDampener: dampener of spring. (?)
+    [SerializeField] private float _rideHeight = 1.75f;
+    [SerializeField] private float _rayToGroundLength = 3f;
+    [SerializeField] public float _rideSpringStrength = 50f;
+    [SerializeField] private float _rideSpringDamper = 5f;
 
 
     private enum lookDirectionOptions { velocity, acceleration, moveInput };
-    private Quaternion _uprightTargetRot = Quaternion.identity; // Adjust y value to match the desired direction to face.
+    private Quaternion _uprightTargetRot = Quaternion.identity;
     private Quaternion _lastTargetRot;
     private Vector3 _platformInitRot;
     private bool didLastRayHit;
@@ -65,9 +66,9 @@ public class PhysicsBasedCharacterController : MonoBehaviour
     [Header("Jump:")]
     [SerializeField] private float _jumpForceFactor = 10f;
     [SerializeField] private float _riseGravityFactor = 5f;
-    [SerializeField] private float _fallGravityFactor = 10f; // typically > 1f (i.e. 5f).
+    [SerializeField] private float _fallGravityFactor = 10f;
     [SerializeField] private float _lowJumpFactor = 2.5f;
-    [SerializeField] private float _jumpBuffer = 0.15f; // Note, jumpBuffer shouldn't really exceed the time of the jump.
+    [SerializeField] private float _jumpBuffer = 0.15f;
     [SerializeField] private float _coyoteTime = 0.25f;
 
 
@@ -78,23 +79,14 @@ public class PhysicsBasedCharacterController : MonoBehaviour
 
         if (_dustParticleSystem)
         {
-            _emission = _dustParticleSystem.emission; // Stores the module in a local variable
-            _emission.enabled = false; // Applies the new value directly to the Particle System
+            _emission = _dustParticleSystem.emission;
+            _emission.enabled = false;
         }
     }
 
-    private bool CheckIfGrounded(bool rayHitGround, RaycastHit rayHit)
+    private bool GroundCheck(bool rayHitGround, RaycastHit rayHit)
     {
-        bool grounded;
-        if (rayHitGround == true)
-        {
-            grounded = rayHit.distance <= _rideHeight * 1.3f; // 1.3f allows for greater leniancy (as the value will oscillate about the rideHeight).
-        }
-        else
-        {
-            grounded = false;
-        }
-        return grounded;
+        return (rayHitGround == true) ? rayHit.distance <= _rideHeight * 1.3f : false;
     }
 
 
@@ -128,13 +120,14 @@ public class PhysicsBasedCharacterController : MonoBehaviour
     {
         _moveInput = new Vector3(_moveContext.x, 0, _moveContext.y);
 
-
         (bool rayHitGround, RaycastHit rayHit) = RaycastToGround();
-        SetPlatform(rayHit);
 
-        bool grounded = CheckIfGrounded(rayHitGround, rayHit);
+        bool grounded = GroundCheck(rayHitGround, rayHit);
         if (grounded == true)
         {
+            Vector3 lookDirection = GetLookDirection(_characterLookDirection);
+            MaintainUpright(lookDirection, rayHit);
+            CharacterMove(_moveInput, rayHit);
             if (_dustParticleSystem)
             {
                 if (_emission.enabled == false)
@@ -163,7 +156,6 @@ public class PhysicsBasedCharacterController : MonoBehaviour
             _timeSinceUngrounded += Time.fixedDeltaTime;
         }
 
-        CharacterMove(_moveInput, rayHit);
         CharacterJump(_jumpInput, grounded, rayHit);
 
         if (rayHitGround && _shouldMaintainHeight)
@@ -171,8 +163,7 @@ public class PhysicsBasedCharacterController : MonoBehaviour
             MaintainHeight(rayHit);
         }
 
-        Vector3 lookDirection = GetLookDirection(_characterLookDirection);
-        MaintainUpright(lookDirection, rayHit);
+
     }
 
     /// <summary>
@@ -183,8 +174,9 @@ public class PhysicsBasedCharacterController : MonoBehaviour
     {
         RaycastHit rayHit;
         Ray rayToGround = new Ray(transform.position, _rayDir);
-        bool rayHitGround = Physics.Raycast(rayToGround, out rayHit, _rayToGroundLength);
-        //Debug.DrawRay(transform.position, _rayDir * _rayToGroundLength, Color.blue);
+        bool rayHitGround = Physics.Raycast(rayToGround, out rayHit, _rayToGroundLength, _floorLayerMask);
+
+
         return (rayHitGround, rayHit);
     }
 
@@ -209,7 +201,7 @@ public class PhysicsBasedCharacterController : MonoBehaviour
         float relVel = rayDirVel - otherDirVel;
         float currHeight = rayHit.distance - _rideHeight;
         float springForce = (currHeight * _rideSpringStrength) - (relVel * _rideSpringDamper);
-        Vector3 maintainHeightForce = - _gravitationalForce + springForce * Vector3.down;
+        Vector3 maintainHeightForce = -_gravitationalForce + springForce * Vector3.down;
         Vector3 oscillationForce = springForce * Vector3.down;
         _rb.AddForce(maintainHeightForce);
         //Debug.DrawLine(transform.position, transform.position + (_rayDir * springForce), Color.yellow);
@@ -322,25 +314,6 @@ public class PhysicsBasedCharacterController : MonoBehaviour
         if (context.started) // button down
         {
             _timeSinceJumpPressed = 0f;
-        }
-    }
-
-    /// <summary>
-    /// Set the transform parent to be the result of RaycastToGround.
-    /// If the raycast didn't hit, then unset the transform parent.
-    /// </summary>
-    /// <param name="rayHit">The rayHit towards the platform.</param>
-    private void SetPlatform(RaycastHit rayHit)
-    {
-        try
-        {
-            RigidPlatform rigidPlatform = rayHit.transform.GetComponent<RigidPlatform>();
-            RigidParent rigidParent = rigidPlatform.rigidParent;
-            transform.SetParent(rigidParent.transform);
-        }
-        catch
-        {
-            transform.SetParent(null);
         }
     }
 
