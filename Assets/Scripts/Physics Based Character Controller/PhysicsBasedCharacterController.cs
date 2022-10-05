@@ -16,6 +16,7 @@ public class PhysicsBasedCharacterController : MonoBehaviour
     private ParticleSystem.EmissionModule _emission;
 
     [Header("Other:")]
+    [SerializeField] private Transform _cam;
     [SerializeField] private ParticleSystem _dustParticleSystem;
 
     private bool _shouldMaintainHeight = true;
@@ -118,7 +119,7 @@ public class PhysicsBasedCharacterController : MonoBehaviour
         }
         else if (lookDirectionOption == lookDirectionOptions.moveInput)
         {
-            lookDirection = _moveInput;
+            lookDirection = AdjustInputToFaceCamera(_moveInput);
         }
         return lookDirection;
     }
@@ -350,7 +351,9 @@ public class PhysicsBasedCharacterController : MonoBehaviour
     /// <param name="rayHit">The rayHit towards the platform.</param>
     private void CharacterMove(Vector3 moveInput, RaycastHit rayHit)
     {
-        Vector3 m_UnitGoal = moveInput;
+
+
+        Vector3 m_UnitGoal = AdjustInputToFaceCamera(moveInput);
         Vector3 unitVel = _m_GoalVel.normalized;
         float velDot = Vector3.Dot(m_UnitGoal, unitVel);
         float accel = _acceleration * _accelerationFactorFromDot.Evaluate(velDot);
@@ -365,6 +368,18 @@ public class PhysicsBasedCharacterController : MonoBehaviour
         neededAccel = Vector3.ClampMagnitude(neededAccel, maxAccel);
         _rb.AddForceAtPosition(Vector3.Scale(neededAccel * _rb.mass, _moveForceScale), transform.position + new Vector3(0f, transform.localScale.y * _leanFactor, 0f)); // Using AddForceAtPosition in order to both move the player and cause the play to lean in the direction of input.
     }
+
+    /// <summary>
+    /// Adjusts the input, so that the movement matches input regardless of camera rotation.
+    /// </summary>
+    /// <param name="moveInput">The player movement input.</param>
+    /// <returns>The camera corrected movement input.</returns>
+    private Vector3 AdjustInputToFaceCamera(Vector3 moveInput)
+    {
+        float facing = _cam.transform.eulerAngles.y;
+        return (Quaternion.Euler(0, facing, 0) * moveInput);
+    }
+
 
     /// <summary>
     /// Apply force to cause the character to perform a single jump, including coyote time and a jump input buffer.
