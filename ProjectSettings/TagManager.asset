@@ -5,14 +5,17 @@ TagManager:
   serializedVersion: 2
   tags:
   - Ball
+  - Effects
+  - RightHand
+  - LeftHand
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Hand
   - Water
   - UI
-  - 
+  - Player
   - 
   - 
   - 
